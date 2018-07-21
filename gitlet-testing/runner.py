@@ -94,9 +94,17 @@ structure matches the following:
     runner.py
     ..."""
 
-GITLET_COMMAND = "java gitlet.Main"
+JAVA_COMMAND = "java"
+GITLET_COMMAND = "gitlet.Main"
 JAVAC_COMMAND = "javac -d ."
+JVM_COMMAND = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
 TIMEOUT = 10
+DEBUG = False
+DEBUG_MSG = \
+"""You are in debug mode. 
+In this mode, you will be shown each command from the test case. 
+If you would like to step into and debug the command, type 's'. Once you have done so, go back to IntelliJ and click the debug button. 
+If you would like to move on to the next command, type 'n'."""
 
 def Usage():
     print(SHORT_USAGE, file=sys.stderr)
@@ -128,6 +136,14 @@ def editDistance(s1, s2):
                              dist[i-1][j-1] + (s1[i-1] != s2[j-1]))
     return dist[len(s1)][len(s2)]
 
+def nextCommand(full_cmnd, timeout):
+    return check_output(full_cmnd, shell=True, universal_newlines=True,
+                           stdin=DEVNULL, stderr=STDOUT, timeout=timeout)
+def stepIntoCommand(full_cmnd):
+    out = check_output(full_cmnd, shell=True, universal_newlines=True,
+                           stdin=DEVNULL, stderr=STDOUT, timeout=None)
+    return out.split("\n", 1)[1]
+
 def createTempDir(base):
     for n in range(100):
         name = "{}_{}".format(base, n)
@@ -158,7 +174,7 @@ def doCopy(dest, src, dir):
 def doCompile(target):
     out = ""
     try:
-        full_cmnd = "{} {}".format(JAVAC_COMMAND, target)
+        full_cmnd = "{} {}".format(JAVAC_COMMAND,target)
         out = check_output(full_cmnd, shell=True, universal_newlines=True,
                            stdin=DEVNULL, stderr=STDOUT)
         return "OK", out
@@ -171,11 +187,26 @@ def doExecute(cmnd, dir, timeout):
     out = ""
     try:
         chdir(dir)
-        full_cmnd = "{} {}".format(GITLET_COMMAND, cmnd)
-        out = check_output(full_cmnd, shell=True, universal_newlines=True,
-                           stdin=DEVNULL, stderr=STDOUT, timeout=timeout)
+        full_cmnd = "{} {} {}".format(JAVA_COMMAND, GITLET_COMMAND, cmnd)
+        
+        if DEBUG:
+            print(">>> gitlet {}".format(cmnd))
+            next_cmd = input()
+            while(next_cmd == ""):
+                print("Please enter either 'n' or 's'.")
+                next_cmd = input()
+
+            if next_cmd == "n":
+                out = nextCommand(full_cmnd, timeout)
+            elif next_cmd == "s":
+                full_cmnd = "{} {} {} {}".format(JAVA_COMMAND, JVM_COMMAND, GITLET_COMMAND, cmnd)
+                out = stepIntoCommand(full_cmnd)
+        else:
+            out = nextCommand(full_cmnd, timeout)
+
         if superverbose:
             print(out)
+
         return "OK", out
     except CalledProcessError as excp:
         return ("java gitlet.Main exited with code {}".format(excp.args[0]),
@@ -261,7 +292,7 @@ def line_reader(f, prefix):
 def doTest(test):
     last_groups = []
     base = splitext(basename(test))[0]
-    print("{}:".format(base), end=" ")
+    print("{}:".format(base), end=" \n")
     cdir = tmpdir = createTempDir(base)
     if verbose:
         print("Testing directory: {}".format(tmpdir))
@@ -388,7 +419,7 @@ if __name__ == "__main__":
         opts, files = \
             getopt(sys.argv[1:], '',
                    ['show=', 'keep', 'lib=', 'verbose', 'src=',
-                    'tolerance=', 'superverbose'])
+                    'tolerance=', 'superverbose', 'debug'])
         for opt, val in opts:
             if opt == '--show':
                 show = int(val)
@@ -404,6 +435,10 @@ if __name__ == "__main__":
                 output_tolerance = int(val)
             elif opt == "--superverbose":
                 superverbose = True
+            elif opt == "--debug":
+                print(DEBUG_MSG)
+                DEBUG = True
+                TIMEOUT = 100000
         if lib_dir is None:
             lib_dir = join(dirname(abspath(getcwd())),
                       "library-su18/javalib")
@@ -434,7 +469,7 @@ if __name__ == "__main__":
             environ['CLASSPATH'] = "{}:{}:{}".format(abspath(getcwd()), lib_glob, environ['CLASSPATH'])
         else:
             environ['CLASSPATH'] = "{}:{}".format(abspath(getcwd()), lib_glob)
-        GITLET_COMMAND = 'exec ' + GITLET_COMMAND
+        JAVA_COMMAND = 'exec ' + JAVA_COMMAND
         JAVAC_COMMAND = 'exec ' + JAVAC_COMMAND
 
     compile_target = join(gitlet_dir, "*.java")
