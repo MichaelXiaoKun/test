@@ -3,12 +3,10 @@ package gitlet;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /* Driver class for Gitlet, the tiny stupid version-control system.
    @author
@@ -50,6 +48,7 @@ public class Main implements Serializable {
         }
         return obj;
     }
+
 
     public void init() {
         File file = new File(".gitlet");
@@ -103,13 +102,13 @@ public class Main implements Serializable {
         }
         CommitNode newNode = new CommitNode(msg, keepTrackFileNameList, currentCommit);
         File file = new File(".gitlet/StagingArea");
-        file.renameTo(new File(".gitlet/" + newNode.getHashCode()));
+        file.renameTo(new File(".gitlet/" + newNode.getHashcode()));
         File NewArea = new File(".gitlet/StagingArea");
         NewArea.mkdir();
         currentCommit.addNext(newNode);
         currentCommit = newNode;
         currentBranch.setNode(newNode);
-        commitTree.put(newNode.getHashCode(), currentCommit);
+        commitTree.put(newNode.getHashcode(), currentCommit);
     }
 
 
