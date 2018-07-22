@@ -32,6 +32,7 @@ public class Main implements Serializable {
         file.mkdir();
         CommitNode initialCommit = new CommitNode("initial commit", keepTrackFileNameList, null);
         currentBranch = new Branch("master", initialCommit);
+        branchMap = new HashMap<>();
         branchMap.put("master", initialCommit);
         File subfile = new File(".gitlet.StagingArea");
         subfile.mkdir();
