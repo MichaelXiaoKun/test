@@ -1,5 +1,7 @@
 package gitlet;
 
+import jdk.jshell.execution.Util;
+
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -16,14 +18,14 @@ public class CommitNode implements Serializable {
     private String message;
     private String hashCode;
     private HashSet<String> filenames;
-    private ArrayList<CommitNode> next;
-    private CommitNode prev;
+    private ArrayList<String> next;
+    private String prev;
 
     public CommitNode(String msg, HashSet<String> filenames, CommitNode prev) {
         message = msg;
         this.filenames = filenames;
-        this.prev = prev;
-        this.next = new ArrayList<CommitNode>();
+        this.prev = Utils.sha1(prev);
+        this.next = new ArrayList<String>();
     }
 
     public String getMessage() {
@@ -42,16 +44,20 @@ public class CommitNode implements Serializable {
         this.hashCode = hashCode;
     }
 
-    public void setPrev(CommitNode p) {
+    public void setPrev(String p) {
         this.prev = p;
     }
 
-    public void setNext(ArrayList<CommitNode> x) {
+    public void setNext(ArrayList<String> x) {
         this.next = x;
     }
 
-    public ArrayList<CommitNode> getNext() {
+    public ArrayList<String> getNext() {
         return next;
+    }
+
+    public void addNext(CommitNode x) {
+        next.add(Utils.sha1(x));
     }
 
     public File getCommitedFile(String filename) {
