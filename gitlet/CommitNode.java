@@ -1,61 +1,59 @@
 package gitlet;
 
-import jdk.jshell.execution.Util;
-
-import java.io.File;
 import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static gitlet.Utils.sha1;
 
 public class CommitNode implements Serializable {
     private String message;
-    private HashSet<String> filenames;
-    private LocalDateTime dateTime;
-    private ArrayList<String> next;
+    private HashMap<String, String> blobs;
+    private long dateTime;
     private String prev;
 
-    public CommitNode(String msg, HashSet<String> filenames, CommitNode prev) {
+    public CommitNode(String msg, HashMap<String, String> blobs, CommitNode prev) {
         message = msg;
-        this.filenames = filenames;
+        this.blobs = blobs;
         this.prev = prev == null ? null : prev.getHashcode();
-        this.next = new ArrayList<String>();
-        dateTime = LocalDateTime.now();
+        dateTime = System.currentTimeMillis();
     }
 
     public String getHashcode() {
-        return Utils.sha1(dateTime, message);
+        return Utils.sha1(Long.toString(dateTime), message);
+    }
+
+    public Date getDateTime() {
+        return new Date(dateTime);
+    }
+
+    public String convertDateTime() {
+        return new SimpleDateFormat("uuuu-MM-dd HH:mm:ss").format(getDateTime());
     }
 
     public String getMessage() {
         return message;
     }
 
-    public HashSet<String> getFilenames() {
-        return filenames;
+    public String getBlobFilename(String filename) {
+        return blobs.get(filename);
     }
 
-    public void setPrev(String p) {
-        this.prev = p;
+    public String getPreviousCommitNodeFilename() {
+        return prev;
     }
 
-    public void setNext(ArrayList<String> x) {
-        this.next = x;
+    public boolean containsFile(String filename) {
+        return blobs.containsKey(filename);
     }
 
-    public ArrayList<String> getNext() {
-        return next;
+    public HashMap<String, String> getBlobs() {
+        return blobs;
     }
 
-    public void addNext(CommitNode x) {
-        next.add(x.getHashcode());
-    }
-
-    public File getCommitedFile(String filename) {
-        return new File(".gitlet/" + getHashcode() + "/" + filename);
+    public String getLog() {
+        String id = this.getHashcode();
+        String time = this.convertDateTime();
+        String message = this.getMessage();
+        return "===\nCommit " + id + "\n" + time + "\n" + message + "\n\n";
     }
 
 }
