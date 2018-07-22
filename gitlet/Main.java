@@ -159,22 +159,15 @@ public class Main implements Serializable {
     }
 
     public void remove(String fileName) {
-        if (currentState.getBlobFilename(fileName) == null && !getCurrentCommit().containsFile(fileName)){
+        CommitNode currentCommit = getCurrentCommit();
+        if (currentState.getBlobFilename(fileName) == null && !currentCommit.containsFile(fileName)){
             System.out.println("No reason to remove the file.");
             return;
         }
-        if (!getCurrentCommit().containsFile(fileName)) {
+        currentState.removeBlob(fileName);
+        File f = new File(fileName);
+        f.delete();
 
-            if(currentState.getBlobFilename(fileName) == null){
-                File f = new File(fileName);
-                f.delete();
-            }
-            else{
-                currentState.removeBlob(fileName);
-                File f = new File(fileName);
-                f.delete();
-            }
-        }
     }
 
     public void log() {
@@ -186,6 +179,9 @@ public class Main implements Serializable {
     }
 
     public void reset(String commitID) {
+        if (!currentState.getCommitList().contains(commitID)) {
+            System.out.println("No commit with that id exists.");
+        }
         currentState.getBlobs().clear();
         CommitNode node = getCommitNode(commitID);
         HashMap<String, String> map = node.getBlobs();
@@ -204,7 +200,7 @@ public class Main implements Serializable {
         currentState.putBranch(branchName, currentState.getCurrentCommit());
     }
 
-    public void rmbranch(String branchName) {
+    public void rmBranch(String branchName) {
         if (!currentState.containsBranch(branchName)) {
             System.out.println("A branch with that name does not exist.");
         } else if (currentState.getCurrentBranchTitle().equals(branchName)) {
@@ -215,6 +211,20 @@ public class Main implements Serializable {
 
     public void checkout() {
 
+    }
+
+    public void find(String commitMessage) {
+        Boolean error = true;
+        ArrayList<CommitNode> commitNodeList = getAllCommitNode();
+        for (CommitNode node : commitNodeList) {
+            if (node.getMessage().equals(commitMessage)) {
+                System.out.println(node.getHashcode());
+                error = false;
+            }
+        }
+        if (error) {
+            System.out.println("Found no commit with that message.");
+        }
     }
 
 
@@ -239,8 +249,14 @@ public class Main implements Serializable {
                 main.globalLog();
             } else if (args[0].equals("reset")) {
                 main.reset(args[1]);
-            } else if (args[0].equals("remove")){
+            } else if (args[0].equals("rm")){
                 main.remove(args[1]);
+            } else if (args[0].equals("branch")) {
+                main.branch(args[1]);
+            } else if (args[0].equals("rm-branch")) {
+                main.rmBranch(args[1]);
+            } else if (args[0].equals("find")) {
+                main.find(args[1]);
             }
         }
         main.saveCurrentState();
