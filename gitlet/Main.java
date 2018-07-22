@@ -83,13 +83,14 @@ public class Main implements Serializable {
     }
 
 
-    public void main(String... args) {
+    public static void main(String... args) {
+        Main main = new Main();
         if (args[0].equals("init")) {
-            init();
+            main.init();
         } else if (args[0].equals("add")) {
-            Add(args[1]);
+            main.Add(args[1]);
         } else if (args[0].equals("commit")) {
-            Commit(args[1]);
+            main.Commit(args[1]);
 
         }
     }
