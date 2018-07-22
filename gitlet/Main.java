@@ -113,17 +113,25 @@ public class Main implements Serializable {
 
 
     public static void main(String... args) {
+        Main main = null;
+        if (args.length == 0) return;
         if (args[0].equals("init")) {
-            Main main = new Main();
+            main = new Main();
             main.init();
+        } else {
+            main = deserialize(".gitlet/metadata");
+            if (! new File(".gitlet").exists()) {
+                System.out.println("Not in an initialized gitlet directory.");
+                return;
+            }
+            if (args[0].equals("add")) {
+                main.Add(args[1]);
+            } else if (args[0].equals("commit")) {
+                main.Commit(args[1]);
+            }
+        }
+        if (main != null) {
             serialize(main, ".gitlet/metadata");
         }
-        Main main = deserialize(".gitlet/metadata");
-        if (args[0].equals("add")) {
-            main.Add(args[1]);
-        } else if (args[0].equals("commit")) {
-            main.Commit(args[1]);
-        }
-        serialize(main, ".gitlet/metadata");
     }
 }

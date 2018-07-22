@@ -21,7 +21,7 @@ public class CommitNode implements Serializable {
     public CommitNode(String msg, HashSet<String> filenames, CommitNode prev) {
         message = msg;
         this.filenames = filenames;
-        this.prev = Utils.sha1(prev);
+        this.prev = prev == null ? null : prev.getHashcode();
         this.next = new ArrayList<String>();
         dateTime = LocalDateTime.now();
     }
