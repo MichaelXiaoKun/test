@@ -33,6 +33,8 @@ public class CommitNode implements Serializable {
         return message;
     }
 
+    public String getBlobFilename(String filename) {return blobs.get(filename);}
+
     public String getPreviousCommitNodeFilename() {
         return prev;
     }

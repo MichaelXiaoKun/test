@@ -3,6 +3,7 @@ package gitlet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class CurrentState implements Serializable {
     private HashMap<String, String> blobs;
@@ -34,14 +35,20 @@ public class CurrentState implements Serializable {
     }
 
     public String getBranchHeadCommitNode(String branchTitle) {
-            return branches.get(branchTitle);
+        return branches.get(branchTitle);
     }
 
     public void putBranch(String title, String commit) {
         branches.put(title, commit);
     }
 
-    public boolean containsBranch(String name) {return branches.containsKey(name);}
+    public HashSet<String> getAllBranchNames() {
+        return new HashSet<String>(branches.keySet());
+    }
+
+    public boolean containsBranch(String name) {
+        return branches.containsKey(name);
+    }
 
     public void deleteBranch(String title) {
         branches.remove(title);
@@ -69,5 +76,9 @@ public class CurrentState implements Serializable {
 
     public HashMap<String, String> getBlobs() {
         return blobs;
+    }
+
+    public void setBlobs(HashMap<String, String> blobs) {
+        this.blobs = blobs;
     }
 }

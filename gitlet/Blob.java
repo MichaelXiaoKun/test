@@ -9,6 +9,11 @@ public class Blob implements Serializable {
 
     private Blob() {}
 
+    public Blob(String fileName, byte[] content){
+        this.filename = fileName;
+        this.content = content;
+    }
+
     public static Blob createBlobFromFile(String filename) {
         File file = new File(filename);
         if (!file.exists()) {
@@ -30,6 +35,7 @@ public class Blob implements Serializable {
 
     }
 
+    public byte[] getContent() {return content;}
     public String getFilename() {
         return filename;
     }
