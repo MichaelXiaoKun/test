@@ -3,6 +3,7 @@ package gitlet;
 import java.io.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -25,11 +26,19 @@ public class Main implements Serializable {
         serialize(node, node.getHashcode() + ".commit");
     }
 
-    public HashSet<CommitNode> getAllCommitNode() {
-        HashSet<CommitNode> result = new HashSet<>();
-
-        if (result.contains(CommitNode))
+    public ArrayList<CommitNode> getAllCommitNode() {
+        ArrayList<CommitNode> result = new ArrayList<>();
+        for (String string: currentState.getCommitList()) {
+            result.add(getCommitNode(string));
+        }
         return result;
+    }
+
+    public void globalLog() {
+        ArrayList<CommitNode> commitNodeList = getAllCommitNode();
+        for (CommitNode node : commitNodeList) {
+            System.out.print(node.getLog());
+        }
     }
 
     public Blob getBlob(String filename) {
@@ -109,10 +118,11 @@ public class Main implements Serializable {
         currentState.setCurrentCommit(initialCommit.getHashcode());
         currentState.putBranch("master", initialCommit.getHashcode());
         currentState.setCurrentBranch("master");
+        currentState.putCommitList(initialCommit.getHashcode());
         saveCurrentState();
     }
 
-    public void Add(String filename) {
+    public void add(String filename) {
         File file = new File(filename);
         if (!file.exists()) {
             System.out.println("File does not exist.");
@@ -130,7 +140,7 @@ public class Main implements Serializable {
         currentState.addBlob(currentVersionBlob.getFilename(), currentVersionBlob.getBlobFilename());
     }
 
-    public void Commit(String msg) {
+    public void commit(String msg) {
         if (msg == null) {
             System.out.println("Please enter a commit message.");
             return;
@@ -145,6 +155,7 @@ public class Main implements Serializable {
         saveCommitNode(newNode);
         currentState.putBranch(currentState.getCurrentBranchTitle(), newNode.getHashcode());
         currentState.setCurrentCommit(newNode.getHashcode());
+        currentState.putCommitList(newNode.getHashcode());
     }
 
     public void log() {
@@ -168,11 +179,13 @@ public class Main implements Serializable {
             }
             main.loadCurrentState();
             if (args[0].equals("add")) {
-                main.Add(args[1]);
+                main.add(args[1]);
             } else if (args[0].equals("commit")) {
-                main.Commit(args[1]);
+                main.commit(args[1]);
             } else if (args[0].equals("log")) {
                 main.log();
+            } else if (args[0].equals("global-log")) {
+                main.globalLog();
             }
         }
         main.saveCurrentState();

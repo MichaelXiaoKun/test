@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CurrentState implements Serializable {
@@ -8,10 +9,20 @@ public class CurrentState implements Serializable {
     private String currentCommit;
     private HashMap<String, String> branches;
     private String currentBranch;
+    private ArrayList<String> commitList;
 
     public CurrentState() {
         blobs = new HashMap<>();
         branches = new HashMap<>();
+        commitList = new ArrayList<>();
+    }
+
+    public ArrayList<String> getCommitList() {
+        return commitList;
+    }
+
+    public void putCommitList(String hashCode) {
+        commitList.add(hashCode);
     }
 
     public String getCurrentCommit() {
