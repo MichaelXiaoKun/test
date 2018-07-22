@@ -41,6 +41,8 @@ public class CurrentState implements Serializable {
         branches.put(title, commit);
     }
 
+    public boolean containsBranch(String name) {return branches.containsKey(name);}
+
     public void deleteBranch(String title) {
         branches.remove(title);
     }

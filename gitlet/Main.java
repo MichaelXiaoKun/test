@@ -131,7 +131,7 @@ public class Main implements Serializable {
         CommitNode currentCommit = getCurrentCommit();
         Blob currentVersionBlob = Blob.createBlobFromFile(filename);
         if (currentCommit.containsFile(filename)) {
-            if (currentVersionBlob.getBlobFilename().equals(currentCommit.getBlobFilename(filename))) {
+            if (currentVersionBlob.getBlobFilename().equals(currentState.getBlobFilename(filename))) {
                 // Same Content
                 return;
             }
@@ -158,12 +158,63 @@ public class Main implements Serializable {
         currentState.putCommitList(newNode.getHashcode());
     }
 
+    public void remove(String fileName) {
+        if (currentState.getBlobFilename(fileName) == null && !getCurrentCommit().containsFile(fileName)){
+            System.out.println("No reason to remove the file.");
+            return;
+        }
+        if (!getCurrentCommit().containsFile(fileName)) {
+
+            if(currentState.getBlobFilename(fileName) == null){
+                File f = new File(fileName);
+                f.delete();
+            }
+            else{
+                currentState.removeBlob(fileName);
+                File f = new File(fileName);
+                f.delete();
+            }
+        }
+    }
+
     public void log() {
         CommitNode commit = getCurrentCommit();
         while (commit != null) {
             System.out.print(commit.getLog());
             commit = getCommitNode(commit.getPreviousCommitNodeFilename());
         }
+    }
+
+    public void reset(String commitID) {
+        currentState.getBlobs().clear();
+        CommitNode node = getCommitNode(commitID);
+        HashMap<String, String> map = node.getBlobs();
+        for (String filename: map.keySet()) {
+            currentState.getBlobs().put(filename, map.get(filename));
+        }
+        currentState.setCurrentCommit(node.getHashcode());
+        currentState.putBranch(currentState.getCurrentBranchTitle(), commitID);
+    }
+
+
+    public void branch(String branchName) {
+        if (currentState.containsBranch(branchName)) {
+            System.out.println("A branch with that name already exists.");
+        }
+        currentState.putBranch(branchName, currentState.getCurrentCommit());
+    }
+
+    public void rmbranch(String branchName) {
+        if (!currentState.containsBranch(branchName)) {
+            System.out.println("A branch with that name does not exist.");
+        } else if (currentState.getCurrentBranchTitle().equals(branchName)) {
+            System.out.println("Cannot remove the current branch.");
+        }
+        currentState.deleteBranch(branchName);
+    }
+
+    public void checkout() {
+
     }
 
 
@@ -186,6 +237,10 @@ public class Main implements Serializable {
                 main.log();
             } else if (args[0].equals("global-log")) {
                 main.globalLog();
+            } else if (args[0].equals("reset")) {
+                main.reset(args[1]);
+            } else if (args[0].equals("remove")){
+                main.remove(args[1]);
             }
         }
         main.saveCurrentState();
